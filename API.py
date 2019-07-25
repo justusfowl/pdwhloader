@@ -61,4 +61,4 @@ def handle_load():
         return Response("{'msg':'Unknown error'}", status=500, mimetype='application/json')
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True, host='0.0.0.0')
