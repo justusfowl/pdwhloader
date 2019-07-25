@@ -19,4 +19,4 @@ ADD odbcinst.ini /etc/odbcinst.ini
 COPY . /app
 WORKDIR /app
 RUN pip install -r requirements.txt
-CMD python __main__.py
+CMD python API.py
