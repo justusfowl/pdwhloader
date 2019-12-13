@@ -19,4 +19,4 @@ ADD odbcinst.ini /etc/odbcinst.ini
 COPY . /app
 WORKDIR /app
 RUN pip install -r requirements.txt
-CMD python API.py
+CMD python __main__.py -r pdwh
