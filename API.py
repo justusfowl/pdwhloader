@@ -85,7 +85,7 @@ def initApi():
             return Response("{'msg':'Tables have been loaded'}", status=200, mimetype='application/json')
 
         except Exception as e:
-            return Response("{'msg':'Unknown error'}", status=500, mimetype='application/json')
+            return make_response(str(e), 500)
 
 
     @app.route("/lab/ldt", methods=['POST'])
