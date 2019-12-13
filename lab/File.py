@@ -55,7 +55,7 @@ class LabRequest:
             self.lanr = in_df[(in_df["type"] == '0212')]["attr"].values[0]
             self.bstnr = in_df[(in_df["type"] == '0201')]["attr"].values[0]
 
-            self.patient_surname = in_df[(in_df["type"] == '3101')]["attr"].values[0]
+            self.patient_surname = in_df[(in_df["type"] == '3102')]["attr"].values[0]
             self.patient_name = in_df[(in_df["type"] == '3101')]["attr"].values[0]
             self.street = in_df[(in_df["type"] == '3107')]["attr"].values[0]
 
