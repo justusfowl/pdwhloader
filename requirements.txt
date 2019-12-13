@@ -31,7 +31,6 @@ pytesseract==0.2.7
 python-dateutil==2.8.1
 python-dotenv==0.10.3
 pytz==2019.1
-pywin32==227
 pyzmq==18.1.1
 requests==2.22.0
 selenium==3.141.0
