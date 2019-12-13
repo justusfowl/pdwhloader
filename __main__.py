@@ -1,84 +1,77 @@
+import argparse
+import os
+import logging
+import logging.config
 
-'''
+logging.config.fileConfig('logging.ini')
 
-src_table_list = [
-    {
-        "table" : "Schein",
-        "create" : True,
-        "drop_if_exists" : True,
-        "time_ref_col" : "DatumAnlage",
-        "time_ref_from" : "DATEADD(qq, DATEDIFF(qq, 0, GETDATE()), 0)"
-    },
-    {
-        "table": "ScheinLZ",
-        "create": True,
-        "drop_if_exists": True,
-        "time_ref_col": "DatumÄnderung",
-        "time_ref_from": "DATEADD(qq, DATEDIFF(qq, 0, GETDATE()), 0)"
-    },
-    {
-        "table": "Patient",
-        "create": True
-    },
-    {
-        "table": "Schein",
-        "create": True,
-        "drop_if_exists": True,
-        # "order_by": " DatumAnlage DESC",
-        "where_clause" : " Nummer <> 63153" # diese Nummer enthält ungültiges Datum (>2500a.D.), 
-        "post_process" : "UPDATE Schein SET rep_date = CF_getrepdatefromdate(DatumAnlage); UPDATE Schein SET compare_rep_date = cf_getcomparequarterfromrepdate(DatumAnlage);",
-        "tructate_first": True
-    }
-    ]   
-    
-   
-     {
-        "table": "Schein",
-        "where_clause": " Nummer <> 63153",
-        "post_process": "UPDATE Schein SET rep_date = CF_getrepdatefromdate(DatumAnlage); UPDATE Schein SET compare_rep_date = cf_getcomparequarterfromrepdate(DatumAnlage);",
-        "tructate_first": True
-    },
-    {
-        "table": "ScheinLZ",
-        "post_process": "UPDATE ScheinLZ SET rep_date = CF_getrepdatefromdate(Datum); ",
-        "tructate_first": True
-    },
-    {
-        "table": "ScheinDiagnosen",
-        "post_process": "UPDATE ScheinDiagnosen SET rep_date = CF_getrepdatefromdate(Datum); ",
-        "tructate_first": True
-    }
+import sys
 
-    
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
 
-src_table_list = [
-    {
-        "table": "Schein",
-        "where_clause": " Nummer <> 63153",
-        "post_process": "UPDATE Schein SET rep_date = CF_getrepdatefromdate(DatumAnlage); UPDATE Schein SET compare_rep_date = cf_getcomparequarterfromrepdate(DatumAnlage);",
-        "tructate_first": True
-    },
-    {
-        "table": "ScheinLZ",
-        "post_process": "UPDATE ScheinLZ SET rep_date = CF_getrepdatefromdate(Datum); ",
-        "tructate_first": True
-    },
-    {
-        "table": "ScheinDiagnosen",
-        "post_process": "UPDATE ScheinDiagnosen SET rep_date = CF_getrepdatefromdate(Datum); ",
-        "tructate_first": True
-    }
-    ]
+from API import initApi
 
-post_processes = [{
-        "database" : "target",
-        "execute" :  [ "drop table if exists o_dm_abweichungsanalyse; ",
-                       "create table o_dm_abweichungsanalyse as select * from dm_AbweichungsAnalyse; ",
-                       "drop table if exists o_dm_abweichungsanalyse; ",
-                       "create table o_dm_abweichungsanalyse as select * from dm_leistungenZeitverlauf;"]
-    }]
+from dotenv import load_dotenv
+from os.path import join, dirname
 
-'''
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path=dotenv_path)
 
-if __name__ == "__main__":
-    print("OK")
+from lab.DocLoader import FileLoader
+
+logger = logging.getLogger("PDWHLoader")
+logger.info('Starting...')
+
+
+list_of_choices = [
+    'pdwh',
+    'fileloader'
+]
+
+parser = argparse.ArgumentParser(description='PraxisDataWareHouse [PDWH] Service')
+
+parser.add_argument(
+    '-r',
+    '--routines',
+    required=True,
+    nargs='+',
+    choices=list_of_choices,
+    metavar='R',
+    help='List of routines to run: {}'.format(', '.join(list_of_choices))
+)
+
+
+parser.add_argument("-d", "--directories", nargs='+',
+                    help="directories to be user for loader, works with --routines=fileloader", metavar="STRINGS")
+
+def main(args=sys.argv[1:]):
+    args = parser.parse_args(args)
+
+    if 'pdwh' in args.routines:
+
+        logger.info("WEB service started")
+        app = initApi()
+        app.run(debug=True,host=os.environ.get("API_HOST_IP"), port=os.environ.get("API_HOST_PORT"))
+
+
+    elif 'fileloader' in args.routines:
+        logger.info("FILELOADER service started")
+
+        directories = args.directories
+
+        if len(directories) > 0:
+
+            for d in directories:
+                logger.info("The following directory should be used {}".format(d))
+
+                labFileLoader = FileLoader(dir=d)
+                labFileLoader.post_files()
+
+        else:
+            logger.error("Please provide at least one directory to be monitored (-d/--directories)")
+
+    else:
+        logger.info("Please select valid routine. Type -r for help.")
+
+main(sys.argv[1:])

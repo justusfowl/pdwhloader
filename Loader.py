@@ -35,6 +35,7 @@ class Loader:
 
         if "src_schema" not in kwargs:
             print("No src_schema provided")
+            return
         else:
             self.src_schema = kwargs["src_schema"]
 
@@ -69,10 +70,12 @@ class Loader:
 
         # SOURCE schema
         #@TODO: Hier noch variable konfigurieren
-        self.src_conn = pyodbc.connect(self.src_conn_string)
 
-        quoted = urllib.parse.quote_plus(self.src_conn_string)
-        self.src_engine = create_engine('mssql+pyodbc:///?odbc_connect={}'.format(quoted))
+        if kwargs["src_schema"] is not None:
+            self.src_conn = pyodbc.connect(self.src_conn_string)
+
+            quoted = urllib.parse.quote_plus(self.src_conn_string)
+            self.src_engine = create_engine('mssql+pyodbc:///?odbc_connect={}'.format(quoted))
 
         if "target_schema" not in kwargs:
             print("No target_schema provided")
@@ -282,7 +285,6 @@ class Loader:
             "money": {
                 "type": "DOUBLE"
             }
-
         }
 
         target_type = mssql_types.get(getattr(col, "DATA_TYPE"), False)
@@ -331,3 +333,17 @@ class Loader:
 
                     except Exception as e:
                         self.logger.fatal("Post-Processing failed for:" % statement, e)
+
+
+class LabLoader(Loader):
+    def __init__(self, target_schema, **kwargs):
+        super().__init__(src_schema= None, src_table_list=None, post_processes=None, target_schema=target_schema, **kwargs)
+
+    def store_lab_requests(self, df_lab_requests, df_lab_requests_services):
+
+        target_engine = self.target_engine
+
+        with target_engine.begin() as conn:
+            df_lab_requests.to_sql(name=os.environ.get("TARGET_TBL_LAB_REQUESTS"),schema=os.environ.get("TARGET_MYSQL_DB"), con=conn, if_exists='append', index=False)
+            df_lab_requests_services.to_sql(name=os.environ.get("TARGET_TBL_LAB_REQUESTS_SERVICES"),schema=os.environ.get("TARGET_MYSQL_DB"), con=conn, if_exists='append', index=False)
+
