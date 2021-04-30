@@ -41,7 +41,7 @@ tika==1.22
 tornado==6.0.3
 traitlets==4.3.3
 unicodecsv==0.14.1
-urllib3==1.25.7
+urllib3==1.25.8
 Wand==0.5.7
 wcwidth==0.1.7
 Werkzeug==0.15.5
