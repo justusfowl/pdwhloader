@@ -15,7 +15,7 @@ Jinja2==2.10.1
 jupyter-client==5.3.4
 jupyter-core==4.6.1
 MarkupSafe==1.1.1
-numpy==1.16.4
+numpy==1.22.0
 pandas==0.24.2
 parso==0.5.1
 pdfminer.six==20181108
